@@ -1,0 +1,7 @@
+{
+	"eslint.workingDirectories": [
+		"cli",
+		"service",
+	],
+	"git.ignoreLimitWarning": true
+}
