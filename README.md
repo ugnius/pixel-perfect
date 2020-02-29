@@ -17,7 +17,31 @@ Configure pp.config.js
 
 ## Run service
 
-TODO
+example docker-compose.yaml
+```yaml
+version: '3.7'
 
-docker stop selenium-chrome
-docker run -d -p 4444:4444 -p 5900:5900 --rm -v /dev/shm:/dev/shm -e NODE_MAX_INSTANCES=5 --name selenium-chrome selenium/standalone-chrome-debug:3.141
+services:
+  pixel-perfect:
+    image: kaugnius/pixel-perfect-service
+    ports:
+      - 8010:8080
+    environment:
+      - MONGO_CONNECTION_STRING=mongodb://mongo/pixel-perfect
+      - SELENIUM_SERVER=http://selenium-chrome:4444/wd/hub
+    depends_on:
+      - mongo
+      - selenium-chrome
+  mongo:
+    image: mongo:4.0
+    volumes:
+      - pp-data:/data/db
+  selenium-chrome:
+    image: selenium/standalone-chrome:3.141
+    volumes:
+      - /dev/shm:/dev/shm
+    environment:
+      - NODE_MAX_INSTANCES=5
+volumes:
+  pp-data:
+```

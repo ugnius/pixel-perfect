@@ -102,12 +102,24 @@ switch(command) {
 					return process.exit(0)
 				}
 			}
+			else {
+				await promisify(fs.writeFile)(
+					path.join(process.cwd(), 'pp.changes.json'),
+					JSON.stringify({
+						test: test._id,
+						report: `${configuration.testService}/tests/${id}/report`,
+					}, null, '\t')
+				)
+
+				console.error(chalk.green('Saved to pp-changes.json'))
+				console.error(chalk.green('Run pp aprove after reviewing report to mark changes as new truth'))
+			}
 
 			const url = `${configuration.testService}/tests/${id}/report`
 			console.log(`Testing done. Test results are available at: ${chalk.blue(url)}`)
 			open(url)
 			setTimeout(() => {
-				process.exit(1)
+				process.exit(changes ? 1 : 0)
 			}, 1000)
 
 		})().catch(error => {
@@ -147,7 +159,7 @@ switch(command) {
 
 			await promisify(fs.unlink)(path.join(process.cwd(), 'pp.changes.json'))
 
-			console.log('pp.truth.json was updated with changes from last test')
+			console.log(chalk.green('pp.truth.json was updated with changes from last test'))
 
 		})().catch(error => {
 			console.error(chalk.red(error))
@@ -156,7 +168,6 @@ switch(command) {
 
 		break;
 	case 'init':
-
 		;(async () => {
 			let stat
 			try {
@@ -166,12 +177,12 @@ switch(command) {
 			}
 
 			if (stat) {
-				console.error(chalk.red('pp.config.js already exist'))
+				console.error(chalk.red('pp.config.js already exists'))
 				return process.exit(1)
 			}
 			
 			const example = await promisify(fs.readFile)(path.join(__dirname, 'pp.config.init.js'))
-			await promisify(fs.writeFile)(path.join(__dirname, 'pp.config.js'), example)
+			await promisify(fs.writeFile)(path.join(process.cwd(), 'pp.config.js'), example)
 			console.log('pp.config.js example file was created')
 
 		})().catch(error => {
