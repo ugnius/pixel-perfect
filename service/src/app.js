@@ -27,9 +27,11 @@ app.post('/tests', wrap(async (req, res) => {
 				origin: { type: 'string', required: true },
 				widths: { type: 'array', required: true, items: { type: 'number' } },
 				header: { type: 'number' },
+				mask: { type: 'array', items: { type: 'string' } },
 				scenes: { type: 'array', required: true, minItems: 1, items: { type: 'object', properties: {
 					title: { type: 'string', required: true },
 					path: { type: 'string', required: true },
+					mask: { type: 'array', items: { type: 'string' } },
 				} } },
 			} },
 		},
@@ -123,7 +125,7 @@ app.get('/images/:new/diff/:old', wrap(async (req, res) => {
 
 	// TODO: optimize with stream
 	const diff = Buffer.allocUnsafe(newRaw.length)
-	for (let i = 0; i < diff.length; i += 4) {
+	for (let i = 0; i < diff.length && i < newRaw.length && i < oldRaw.length; i += 4) {
 		if (newRaw[i] === oldRaw[i]
 			&& newRaw[i + 1] === oldRaw[i + 1]
 			&& newRaw[i + 2] === oldRaw[i + 2])
@@ -173,6 +175,43 @@ app.use((error, req, res, next) => { // eslint-disable-line no-unused-vars
 })
 
 
+async function testScreen(configuration, screen) {
+	const { scene, testWidth } = screen
+	const title = `${scene.title} w${testWidth}`
+
+	const { buffer, digest, width, height } = await getScreenshot(
+		`${configuration.origin}${scene.path}`,
+		testWidth, { header: configuration.header, only: scene.only, mask: scene.mask || configuration.mask })
+
+	const image = await Image.findOne({ 'metadata.digest': digest }).lean()
+	if (!image) {
+		await new Promise(resolve => {
+			const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'images' })
+			const writestream = bucket.openUploadStream(`${digest}.png`, {
+				metadata: { width, height, digest },
+				contentType: 'image/png',
+			})
+
+			writestream.on('finish', () => {
+				resolve()
+			})
+
+			var zipStream = new streams.ReadableStreamBuffer({ chunkSize: 8192 })
+			zipStream.pipe(writestream)
+			zipStream.put(buffer)
+			zipStream.stop()
+		})
+	}
+
+	return {
+		title,
+		image: digest,
+		width,
+		height,
+	}
+}
+
+
 async function startTest(test) {
 
 	const screens = []
@@ -188,45 +227,11 @@ async function startTest(test) {
 	await test.save()
 
 	try {
-		for (const screen of screens) {
-			const { scene, testWidth } = screen
-
-			const title = `${scene.title} w${testWidth}`
-			console.debug(`test ${test._id} screenshot ${test.configuration.origin}${scene.path} @ ${testWidth}`)
-
-			const { buffer, digest, width, height } =
-				await getScreenshot(`${test.configuration.origin}${scene.path}`, testWidth, { header: test.configuration.header })
-
-			const image = await Image.findOne({ 'metadata.digest': digest }).lean()
-			if (!image) {
-				await new Promise(resolve => {
-					const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: 'images' })
-					const writestream = bucket.openUploadStream(`${digest}.png`, {
-						metadata: { width, height, digest },
-						contentType: 'image/png',
-					})
-
-					writestream.on('finish', () => {
-						resolve()
-					})
-
-					var zipStream = new streams.ReadableStreamBuffer({ chunkSize: 8192 })
-					zipStream.pipe(writestream)
-					zipStream.put(buffer)
-					zipStream.stop()
-				})
-			}
-
-			test.results.push({
-				title,
-				image: digest,
-				width,
-				height,
-			})
-			test.progress.completed++
-
-			await test.save()
-		}
+		test.results = await Promise.all(screens.map(async screen => {
+			const result = await testScreen(test.configuration, screen)
+			await Test.updateOne({ _id: test._id }, { $inc: { 'progress.completed': 1 } })
+			return result
+		}))
 
 		console.debug(`test ${test._id} finished`)
 		test.progress.state = 'done'

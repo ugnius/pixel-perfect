@@ -1,6 +1,6 @@
 {
   "name": "pixel-perfect-cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Visual regression testing tool cli",
   "main": "index.js",
   "bin": {
@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "chalk": "^3.0.0",
+    "dotenv": "^8.2.0",
     "node-fetch": "^2.6.0",
     "open": "^7.0.2"
   }

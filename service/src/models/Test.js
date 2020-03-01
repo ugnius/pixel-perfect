@@ -6,9 +6,12 @@ const schema = new mongoose.Schema({
 		origin: String,
 		widths: [Number],
 		header: Number,
+		mask: [],
 		scenes: [{
 			title: String,
 			path: String,
+			only: String,
+			mask: { type: [String], default: undefined },
 		}],
 	},
 	parentTest: { type: mongoose.Types.ObjectId, ref: 'Test' },

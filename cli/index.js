@@ -62,6 +62,11 @@ switch(command) {
 			process.stdout.write('\n');
 
 			const { data: test } = await get(`${configuration.testService}/tests/${id}`)
+			if (test.progress.error) {
+				console.error(chalk.red(`Error from test service: ${test.progress.error}`))
+				return process.exit(1)
+			}
+
 			let changes = 0
 
 			if (truth) {
@@ -70,7 +75,6 @@ switch(command) {
 				const newScreens = parentTest.results.filter(p => !test.results.some(t => t.title === p.title))
 				const oldScreens = test.results.filter(t => !parentTest.results.some(p => p.title === t.title))
 				const changedSceens = test.results.filter(t => parentTest.results.some(p => p.title === t.title && p.image !== t.image))
-				const sameSceens = test.results.filter(t => parentTest.results.some(p => p.title === t.title && p.image === t.image))
 
 				const changes = newScreens.length + changedSceens.length + oldScreens.length
 				if (changes) {
@@ -91,9 +95,6 @@ switch(command) {
 					}
 					if (changedSceens.length) {
 						console.log('changed: ', changedSceens.map(p => p.title).join(', '))
-					}
-					if (sameSceens.length) {
-						console.log('same: ', sameSceens.map(p => p.title).join(', '))
 					}
 					console.error(chalk.yellow('Run pp aprove after reviewing report to mark changes as new truth'))
 				}
@@ -180,7 +181,7 @@ switch(command) {
 				console.error(chalk.red('pp.config.js already exists'))
 				return process.exit(1)
 			}
-			
+
 			const example = await promisify(fs.readFile)(path.join(__dirname, 'pp.config.init.js'))
 			await promisify(fs.writeFile)(path.join(process.cwd(), 'pp.config.js'), example)
 			console.log('pp.config.js example file was created')

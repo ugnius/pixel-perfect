@@ -7,7 +7,7 @@ function Screen(props) {
 	const screen = props.data
 
 	const pad = 20
-	const [show, setShow] = useState(screen.status === 'changed')
+	const [show, setShow] = useState(false)
 	const maxWidth = window.innerWidth - 73 - pad * 2
 	const [maxHeight, setMaxHeight] = useState(800)
 	const [slide, setSlide] = useState(0)
@@ -30,7 +30,7 @@ function Screen(props) {
 			screenWidth * scale,
 			screenHeight * scale,
 		]
-	}, [maxHeight])
+	}, [maxHeight, screen])
 
 	const divRef = useRef()
 

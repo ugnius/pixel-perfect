@@ -7,6 +7,7 @@ import Screen from './Screen'
 function Layout() {
 	const [test, setTest] = useState(null)
 	const [parentTest, setParentTest] = useState(null)
+	const [hideByStatus, setHideByStatus] = useState({ same: true })
 
 	useEffect(() => {
 		const id = (window.location.pathname.match(/tests\/(.*)\//) || [])[1]
@@ -67,10 +68,10 @@ function Layout() {
 		return [
 			screens,
 			{
-				new: newScreens.length,
-				old: oldScreens.length,
-				changed: changedSceens.length,
 				same: sameSceens.length,
+				old: oldScreens.length,
+				new: newScreens.length,
+				changed: changedSceens.length,
 			},
 		]
 
@@ -79,9 +80,11 @@ function Layout() {
 	return <div>
 		<h1 className="title">Report for {test ? test.configuration.origin : ''}</h1>
 		{ Object.entries(stats).filter(([, value]) => value).map(([key, value]) => (
-			<span className={`tag tag-${key}`} key={key}>{key[0].toUpperCase()}{key.substring(1)} {value}</span>
+			<span className={`tag tag-${key}`} key={key} onClick={() => setHideByStatus({ ...hideByStatus, [key]: !hideByStatus[key] })}>
+				{key[0].toUpperCase()}{key.substring(1)} {value} { hideByStatus[key] && <span>[Show]</span> }
+			</span>
 		))}
-		{ screens.map(screen => (
+		{ screens.filter(x => !hideByStatus[x.status]).map(screen => (
 			<Screen key={screen.id} data={screen} />
 		)) }
 	</div>
