@@ -4,4 +4,5 @@ cli/pp.config.js
 cli/pp.truth.json
 cli/pp.changes.json
 service/docker-compose.yaml
+*.tgz
 TODO
