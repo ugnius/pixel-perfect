@@ -127,7 +127,7 @@ switch(command) {
 			if (error.data) {
 				console.error(chalk.red(`Error from test service: ${error.data.message}`))
 			}
-			if (error.message.includes('ECONNREFUSED')) {
+			if ((error.message || '').includes('ECONNREFUSED')) {
 				console.error(chalk.red(`Error connecting to ${configuration.testService}`))
 			}
 			else {
