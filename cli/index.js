@@ -6,6 +6,7 @@ const fetch = require('node-fetch')
 const fs = require('fs')
 const open = require('open')
 const { promisify } = require('util')
+const readline = require('readline')
 
 
 const command = process.argv[2]
@@ -54,9 +55,8 @@ switch(command) {
 				progress = res.data
 
 				if (progress.state === 'running') {
-					process.stdout.cursorTo(0);
+					readline.cursorTo(process.stdout, 0)
 					process.stdout.write(`Running test ${progress.completed + 1} of ${progress.total}`);
-					process.stdout.clearLine(1);
 				}
 			} while (progress.state === 'running')
 			process.stdout.write('\n');
