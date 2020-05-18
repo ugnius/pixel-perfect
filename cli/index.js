@@ -76,7 +76,7 @@ switch(command) {
 				const oldScreens = test.results.filter(t => !parentTest.results.some(p => p.title === t.title))
 				const changedSceens = test.results.filter(t => parentTest.results.some(p => p.title === t.title && p.image !== t.image))
 
-				const changes = newScreens.length + changedSceens.length + oldScreens.length
+				changes = newScreens.length + changedSceens.length + oldScreens.length
 				if (changes) {
 					await promisify(fs.writeFile)(
 						path.join(process.cwd(), 'pp.changes.json'),

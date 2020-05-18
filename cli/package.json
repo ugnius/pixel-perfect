@@ -1,6 +1,6 @@
 {
   "name": "pixel-perfect-cli",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Visual regression testing tool cli",
   "main": "index.js",
   "bin": {
