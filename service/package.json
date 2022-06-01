@@ -23,7 +23,7 @@
     "jsonschema": "^1.2.5",
     "mongoose": "^5.9.1",
     "selenium-webdriver": "^4.0.0-alpha.5",
-    "sharp": "^0.24.1",
+    "sharp": "^0.30.5",
     "stream-buffers": "^3.0.2"
   },
   "devDependencies": {
